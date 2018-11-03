@@ -16,6 +16,7 @@ func (cmt CommentsStruct) GetComment() string {
 
 func (cmt *CommentsStruct) SetComment(newCmt string) {
 	cmt.Content = newCmt
+	cmt.LastUpdated = time.Now()
 }
 
 func (cmt CommentsStruct) GetLastUpdateTime() time.Time {
