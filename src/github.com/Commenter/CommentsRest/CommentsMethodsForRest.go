@@ -35,11 +35,19 @@ func (controller CommentsController) ModifyComment(commentId int64, content stri
 	return errors.New("no comment with that commentId")
 }
 
-func (controller CommentsController) GetComment(commentId int64) (error, string, string, time.Time) {
+func (controller CommentsController) GetComment(commentId int64) (error, CommentsPackage.CommentsStruct) {
 	if val, ok := controller.CommentsMap[commentId]; ok {
 		content := val.GetComment()
-		return nil, content, val.ByPerson, val.LastUpdated
+		return nil, CommentsPackage.CommentsStruct{content, val.LastUpdated, val.ByPerson}
 
 	}
-	return errors.New("no comment with that commentId"), "error", "error", time.Now()
+	return errors.New("no comment with that commentId"), CommentsPackage.CommentsStruct{"", time.Now(), ""}
+}
+
+func (controller CommentsController) GetAllComments() []CommentsPackage.CommentsStruct {
+	ReturnSlice := make([]CommentsPackage.CommentsStruct, 0, 1)
+	for _, v := range CommentsPackage.CommentsMap {
+		ReturnSlice = append(ReturnSlice, CommentsPackage.CommentsStruct{v.GetComment(), v.GetLastUpdateTime(), v.GetPersonName()})
+	}
+	return ReturnSlice
 }
