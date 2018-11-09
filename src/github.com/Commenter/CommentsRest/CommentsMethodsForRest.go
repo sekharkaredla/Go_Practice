@@ -51,3 +51,11 @@ func (controller CommentsController) GetAllComments() []CommentsPackage.Comments
 	}
 	return ReturnSlice
 }
+
+func (controller CommentsController) DeleteComments(commentId int64) error {
+	if _, ok := controller.CommentsMap[commentId]; ok {
+		delete(controller.CommentsMap, commentId)
+		return nil
+	}
+	return errors.New("No comment with that comment id")
+}

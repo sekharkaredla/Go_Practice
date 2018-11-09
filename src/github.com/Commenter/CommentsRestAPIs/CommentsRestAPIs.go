@@ -27,24 +27,76 @@ func GetOne(w http.ResponseWriter, r *http.Request) {
 		log.Fatal("Wrong id")
 	}
 	fmt.Println(json.Marshal(val))
+	w.WriteHeader(http.StatusAccepted)
 	json.NewEncoder(w).Encode(val)
+
 }
 
 func AddOne(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
-	_, err := strconv.Atoi(id)
+	inte, err := strconv.Atoi(id)
 	if err != nil {
 		log.Fatal("wrong id for comment")
 	}
-	type Temp struct {
-		id      int    `json:"id"`
-		content string `json:"content"`
-		user    string `json:"user"`
+	fmt.Println(r.Body)
+	var data map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		panic(err)
 	}
-	var temp1 Temp
-	json.NewDecoder(r.Body).Decode(&temp1)
-	fmt.Println(temp1)
+	log.Println(data)
+	err2 := CommentsRestImpl.Controller.AddComment(int64(inte), data["comment"].(string), data["user"].(string))
+	if err2 != nil {
+		panic(err2)
+	}
+	log.Println("Writing comment successful")
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusAccepted)
+	return_data, _ := json.Marshal("{\"message\":\"success_created\"}")
+	w.Write(return_data)
+}
+
+func ModifyOne(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	inte, err := strconv.Atoi(id)
+	if err != nil {
+		log.Fatal("wrong id for comment")
+	}
+	fmt.Println(r.Body)
+	var data map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		panic(err)
+	}
+	log.Println(data)
+	err2 := CommentsRestImpl.Controller.ModifyComment(int64(inte), data["comment"].(string))
+	if err2 != nil {
+		panic(err2)
+	}
+	log.Println("Modifying comment successful")
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusAccepted)
+	return_data, _ := json.Marshal("{\"message\":\"success_changes\"}")
+	w.Write(return_data)
+}
+
+func DeleteOne(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	inte, err := strconv.Atoi(id)
+	if err != nil {
+		log.Fatal("wrong id for comment")
+	}
+	fmt.Println(r.Body)
+	err2 := CommentsRestImpl.Controller.DeleteComments(int64(inte))
+	if err2 != nil {
+		panic(err2)
+	}
+	log.Println("Deletinh comment successful")
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusAccepted)
+	return_data, _ := json.Marshal("{\"message\":\"success_deletes\"}")
+	w.Write(return_data)
 }
 
 func main() {
@@ -53,5 +105,7 @@ func main() {
 	router.HandleFunc("/comments", GetAll).Methods("GET")
 	router.HandleFunc("/comment/{id}", GetOne).Methods("GET")
 	router.HandleFunc("/comment/{id}", AddOne).Methods("POST")
+	router.HandleFunc("/comment/{id}", ModifyOne).Methods("PUT")
+	router.HandleFunc("/comment/{id}", DeleteOne).Methods("DELETE")
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
